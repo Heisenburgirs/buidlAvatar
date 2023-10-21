@@ -1,5 +1,11 @@
 # buidl-avatar-creator
 
+Submission for buidlHacks Hackathon - build your Avatar in seconds.
+
+Dapp allows a selection of different traits from categories - eyes, clothes, body etc. - and produces the final selection in json format.
+
+Built with Vue3 by Heisen🍔
+
 ## Project setup
 ```
 npm install
