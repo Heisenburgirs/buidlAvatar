@@ -113,7 +113,7 @@ export default {
     }
 
     function getImageClass(category, imageName) {
-      return selectedNFTs[category] === imageName ? 'border-primary border-opacity-100' : '';
+      return selectedNFTs[category] === imageName.replace('.png', '') ? 'border-primary' : '';
     }
 
     function resetTraits() {
