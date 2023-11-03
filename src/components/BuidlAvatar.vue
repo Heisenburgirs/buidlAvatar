@@ -79,20 +79,27 @@
 
         <div class="flex flex-col gap-2 justify-between">
           <div class="relative md:w-[400px] h-[324px] border border-positive border-opacity-25 rounded-10">
-            <img 
-                v-for="trait in traits" 
-                :key="trait" 
-                :src="getTraitImage(trait)" 
-                alt="" 
-                class="absolute top-0 left-0 w-full h-full"
-            >
-          </div>
+  <template v-if="isAnyTraitSelected">
+    <img 
+      v-for="trait in selectedTraits" 
+      :key="trait" 
+      :src="getTraitImage(trait)" 
+      alt="" 
+      class="absolute top-0 left-0 w-full h-full"
+    >
+  </template>
+  <div v-else class="flex items-center justify-center h-full text-white font-bold">
+    No traits selected
+  </div>
+</div>
+
+
           
           <div 
-            @click="copyToClipboard" 
+            @click="randomizeTraits" 
             class="text-center py-2 px-4 text-14 border border-secondary rounded-10 text-secondary hover:bg-secondary hover:border-secondary hover:text-black transition hover:cursor-pointer"
           >
-            Copy Json
+            Randomize
           </div>
           <div class="text-center text-white">{{ copyMessage }}</div>
           <div class="text-center py-2 px-4 text-14 border border-tertiary rounded-10 text-tertiary hover:bg-tertiary hover:border-tertiary hover:text-black transition hover:cursor-pointer">
@@ -105,130 +112,134 @@
 </template>
 
 <script>
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import arrow from '@/assets/arrow.png';
 
 export default {
-  name: 'BuidlAvatar',
-  setup() {
-    // State
-    const selectedFilter = ref('Ears'); // Default to 'Ears'
-    const traits = ['Ears', 'Eyes', 'Face', 'Head', 'Clothes',]
-    const copyMessage = ref(''); 
+      name: 'BuidlAvatar',
+      setup() {
+        // State
+        const selectedFilter = ref('Ears'); // Default to 'Ears'
+        const traits = ['Ears', 'Eyes', 'Face', 'Head', 'Clothes',]
+        const copyMessage = ref(''); 
 
-    function selectImage(category, imageName) {
-      selectedNFTs[category] = imageName.replace('.png', '');
-    }
+        function selectImage(category, imageName) {
+          selectedNFTs[category] = imageName.replace('.png', '');
+        }
 
-    function getImageClass(category, imageName) {
-      return selectedNFTs[category] === imageName.replace('.png', '') ? 'border-primary' : '';
-    }
+        function getImageClass(category, imageName) {
+          return selectedNFTs[category] === imageName.replace('.png', '') ? 'border-primary' : '';
+        }
 
-    function resetTraits() {
-      for (const trait in selectedNFTs) {
-        selectedNFTs[trait] = '';
-      }
-    }
+        function resetTraits() {
+          for (const trait in selectedNFTs) {
+            selectedNFTs[trait] = '';
+          }
+        }
 
-    const contexts = {
-      Ears: require.context('@/assets/Ears', false, /\.(png|jpe?g|svg)$/),
-      Eyes: require.context('@/assets/Eyes', false, /\.(png|jpe?g|svg)$/),
-      Face: require.context('@/assets/Face', false, /\.(png|jpe?g|svg)$/),
-      Head: require.context('@/assets/Head', false, /\.(png|jpe?g|svg)$/),
-      Clothes: require.context('@/assets/Clothes', false, /\.(png|jpe?g|svg)$/),
-    };
+        const contexts = {
+          Ears: require.context('@/assets/Ears', false, /\.(png|jpe?g|svg)$/),
+          Eyes: require.context('@/assets/Eyes', false, /\.(png|jpe?g|svg)$/),
+          Face: require.context('@/assets/Face', false, /\.(png|jpe?g|svg)$/),
+          Head: require.context('@/assets/Head', false, /\.(png|jpe?g|svg)$/),
+          Clothes: require.context('@/assets/Clothes', false, /\.(png|jpe?g|svg)$/),
+        };
 
-    const images = reactive({
-      Ears: contexts.Ears.keys().map(key => key.split('/').pop()),
-      Eyes: contexts.Eyes.keys().map(key => key.split('/').pop()),
-      Face: contexts.Face.keys().map(key => key.split('/').pop()),
-      Head: contexts.Head.keys().map(key => key.split('/').pop()),
-      Clothes: contexts.Clothes.keys().map(key => key.split('/').pop()),
-    });
-
-    // When initializing selectedNFTs, assign random traits
-    const selectedNFTs = reactive({
-      Ears: getRandomTrait('Ears'),
-      Eyes: getRandomTrait('Eyes'),
-      Face: getRandomTrait('Face'),
-      Head: getRandomTrait('Head'),
-      Clothes: getRandomTrait('Clothes'),
-    });
-    
-    function getRandomTrait(category) {
-      const allImagesForCategory = images[category];
-      if (allImagesForCategory && allImagesForCategory.length) {
-          const randomIndex = Math.floor(Math.random() * allImagesForCategory.length);
-          return allImagesForCategory[randomIndex].replace('.png', '');
-      }
-      return '';
-    }
-
-    function copyToClipboard() {
-      const textToCopy = JSON.stringify(selectedNFTs, null, 2);
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-          showToast('JSON copied successfully!', 'success');
-        }).catch(err => {
-          console.error('Failed to copy JSON: ', err);
-          showToast('Failed to copy JSON', 'error');
+        const images = reactive({
+          Ears: contexts.Ears.keys().map(key => key.split('/').pop()),
+          Eyes: contexts.Eyes.keys().map(key => key.split('/').pop()),
+          Face: contexts.Face.keys().map(key => key.split('/').pop()),
+          Head: contexts.Head.keys().map(key => key.split('/').pop()),
+          Clothes: contexts.Clothes.keys().map(key => key.split('/').pop()),
         });
-      } else {
-        showToast('Clipboard API not supported', 'error');
-      }
-    }
 
-    function showToast(message, type) {
-      const toast = document.createElement('div');
-      toast.className = `toast fixed bottom-[-100px] left-1/2 transform -translate-x-1/2 bg-opacity-70 text-white px-5 py-3 rounded-lg z-50 text-sm transition-all duration-500 ease-in-out ${type === 'success' ? 'bg-green' : 'bg-red'}`;
-      toast.textContent = message;
-
-      document.body.appendChild(toast);
-
-      // Let the browser paint the initial state, then move toast upwards
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          toast.style.bottom = '5rem';  // roughly equivalent to Tailwind's `bottom-20` class
+        // When initializing selectedNFTs, assign random traits
+        const selectedNFTs = reactive({
+          Ears: getRandomTrait('Ears'),
+          Eyes: getRandomTrait('Eyes'),
+          Face: getRandomTrait('Face'),
+          Head: getRandomTrait('Head'),
+          Clothes: getRandomTrait('Clothes'),
         });
-      });
+        
+        function getRandomTrait(category) {
+          const allImagesForCategory = images[category];
+          if (allImagesForCategory && allImagesForCategory.length) {
+              const randomIndex = Math.floor(Math.random() * allImagesForCategory.length);
+              return allImagesForCategory[randomIndex].replace('.png', '');
+          }
+          return '';
+        }
 
-      setTimeout(() => {
-        toast.style.bottom = '-100px';
-        setTimeout(() => {
-          document.body.removeChild(toast);
-        }, 500); // 500ms matches the transition duration, ensure the toast is fully out of view before removing from DOM
-      }, 2500); // keep the toast visible for 2500ms
+        function randomizeTraits() {
+          for (const category of traits) {
+            selectedNFTs[category] = getRandomTrait(category);
+          }
+          showToast('Traits randomized successfully!', 'success');
+        }
+
+        function showToast(message, type) {
+          const toast = document.createElement('div');
+          toast.className = `toast fixed bottom-[-100px] left-1/2 transform -translate-x-1/2 bg-opacity-70 text-white px-5 py-3 rounded-lg z-50 text-sm transition-all duration-500 ease-in-out ${type === 'success' ? 'bg-green' : 'bg-red'}`;
+          toast.textContent = message;
+
+          document.body.appendChild(toast);
+
+          // Let the browser paint the initial state, then move toast upwards
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              toast.style.bottom = '5rem';  // roughly equivalent to Tailwind's `bottom-20` class
+            });
+          });
+
+          setTimeout(() => {
+            toast.style.bottom = '-100px';
+            setTimeout(() => {
+              document.body.removeChild(toast);
+            }, 500); // 500ms matches the transition duration, ensure the toast is fully out of view before removing from DOM
+          }, 2500); // keep the toast visible for 2500ms
+        }
+
+        const isAnyTraitSelected = computed(() => {
+          return Object.values(selectedNFTs).some(value => value !== '');
+        });
+
+        const selectedTraits = computed(() => {
+          return traits.filter(trait => selectedNFTs[trait] !== '');
+        });
+
+        return {
+          arrow,
+          selectedFilter,
+          traits,
+          images,
+          selectedNFTs,
+          copyMessage,
+          isAnyTraitSelected,
+          selectedTraits,
+          selectImage,
+          getImageClass,
+          resetTraits,
+          randomizeTraits,
+          showToast,
+          getRandomTrait,
+        };
+      },
+      methods: {
+      formatImageName(imageName) {
+        const nameWithoutExtension = imageName.split('.')[0];
+        return nameWithoutExtension.length > 10 ? `${nameWithoutExtension.slice(0, 10)}...` : nameWithoutExtension;
+      },
+      
+      getTraitImage(trait) {
+          const selectedImage = this.selectedNFTs[trait];
+          if (selectedImage) {
+              return require('@/assets/' + trait + '/' + selectedImage + '.png');
+          }
+          return ''; // Return a placeholder or default image if needed
+      },
     }
-
-    return {
-      arrow,
-      selectedFilter,
-      traits,
-      images,
-      selectedNFTs,
-      copyMessage,
-      selectImage,
-      getImageClass,
-      resetTraits,
-      copyToClipboard,
-      showToast,
-      getRandomTrait,
-    };
-  },
-  methods: {
-  formatImageName(imageName) {
-    const nameWithoutExtension = imageName.split('.')[0];
-    return nameWithoutExtension.length > 10 ? `${nameWithoutExtension.slice(0, 10)}...` : nameWithoutExtension;
-  },
-  getTraitImage(trait) {
-      const selectedImage = this.selectedNFTs[trait];
-      if (selectedImage) {
-          return require('@/assets/' + trait + '/' + selectedImage + '.png');
-      }
-      return ''; // Return a placeholder or default image if needed
-  },
-}
-}
+  }
 
 </script>
 
