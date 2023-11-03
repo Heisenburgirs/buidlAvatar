@@ -4,7 +4,7 @@ Submission for buidlHacks Hackathon - build your Avatar in seconds.
 
 Dapp allows a selection of different traits from categories - eyes, clothes, body etc. - and produces the final selection in json format.
 
-![image](https://github.com/Heisenburgirs/buidlAvatar/assets/129852498/ba5a44e1-a954-4556-a9eb-dc695f4b3e5e)
+![image](https://github.com/Heisenburgirs/buidlAvatar/assets/129852498/1d257491-7baa-4173-a1df-e77db310b660)
 
 Built with Vue3 by Heisen🍔
 
